@@ -1,0 +1,11 @@
+[project]
+name = "vscode-plotting-theme"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ipyk>=0.1.4.2",
+    "ipykernel>=6.29.5",
+    "seaborn>=0.13.2",
+]
