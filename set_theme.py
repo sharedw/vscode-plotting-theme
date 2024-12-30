@@ -30,10 +30,10 @@ def get_theme_name():
     theme_name = json_settings.get("workbench.colorTheme", None)
     if not theme_name:
         return "dark_modern"
-    return theme_name
+    return json_settings, theme_name
 
 
-theme_name = get_theme_name()
+json_settings, theme_name = get_theme_name()
 print(theme_name)
 
 
@@ -61,7 +61,9 @@ def get_extension_filepath(theme_name):
                         # Get the displayName from the package.json
                         contributes = package_data.get("contributes", {})
                         themes = contributes.get("themes", [])
-                        name = package_data.get("name", None)
+                        name = package_data.get("name", '')
+                        name = package_data.get('id', name)
+                        name = name.replace('-', ' ')
                         category = package_data.get("categories", None)
                         if theme_name.lower() in name.lower() and category == [
                             "Themes"
@@ -69,9 +71,9 @@ def get_extension_filepath(theme_name):
                             theme_path = package_data["contributes"]["themes"][0].get(
                                 "path", ""
                             )
-                            print(
-                                f"Found theme: {name} in folder: {folder_path+theme_path}"
-                            )
+                            #print(
+                            #    f"Found theme: {name} in folder: {folder_path+theme_path}"
+                            #)
                             return folder_path + theme_path
                         for theme in themes:
                             label = theme.get("label", "!!!")
@@ -79,9 +81,9 @@ def get_extension_filepath(theme_name):
                                 theme_name.lower() in label.lower()
                             ):  # Case-insensitive comparison
                                 theme_path = theme.get("path", "")
-                                print(
-                                    f"Found theme: {label} in folder: {folder_path+theme_path}"
-                                )
+                                #print(
+                                #    f"Found theme: {label} in folder: {folder_path+theme_path}"
+                                #)
                                 return folder_path + theme_path
                     except json.JSONDecodeError as e:
                         print(f"Error decoding JSON in {package_json_path}: {e}")
@@ -89,7 +91,6 @@ def get_extension_filepath(theme_name):
     raise KeyError("Theme extension folder was not found")
 
 
-print(theme_name)
 if theme_name != "dark_modern":
     extension_path = get_extension_filepath(theme_name)
     with open(extension_path) as file:
@@ -102,10 +103,15 @@ else:
 with open(extension_path) as file:
     theme_settings = json.load(file, cls=JSONWithCommentsDecoder)
 
+if "workbench.colorCustomizations" in json_settings.keys():
+    if f'[{theme_name}]' in json_settings["workbench.colorCustomizations"].keys():
+        theme_settings['colors'].update(json_settings["workbench.colorCustomizations"][f'[{theme_name}]'])
+
+
 
 def get_token_color(settings, token):
     try:
-        return settings["semanticTokenColors"]["class.builtin:python"]["foreground"]
+        return settings["semanticTokenColors"][token]
     except KeyError:
         pass
     for t in settings["tokenColors"]:
@@ -115,15 +121,15 @@ def get_token_color(settings, token):
 
 bg_color = theme_settings["colors"].get("notebook.outputContainerBackgroundColor", None)
 if not bg_color:
-    bg_color = theme_settings["colors"].get("editor.background", "#FFFFFF")
+    #print('editor_bg color used')
+    bg_color = theme_settings["colors"].get("editor.background", "#1E1E1E")
+
 text_color = theme_settings["colors"].get("editor.foreground", "#FFFFFF")
-
-
 string_color = get_token_color(theme_settings, "string")
 function_color = get_token_color(theme_settings, "keyword")
 comment_color = get_token_color(theme_settings, "comment")
 
-print(comment_color, bg_color, function_color, text_color)
+#print(bg_color, text_color, string_color, comment_color, function_color)
 
 custom_style = {
     "axes.facecolor": bg_color,
@@ -135,6 +141,7 @@ custom_style = {
     "axes.titlecolor": text_color,
     "grid.color": comment_color,
     "axes.edgecolor": text_color,
+    "lines.markeredgecolor": bg_color
 }
 
 sns.set_style("darkgrid", rc=custom_style)
