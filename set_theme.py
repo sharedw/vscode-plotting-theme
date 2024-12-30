@@ -29,9 +29,8 @@ def get_theme_name():
 
     theme_name = json_settings.get("workbench.colorTheme", None)
     if not theme_name:
-        return "dark_modern"
+        return json_settings, "dark_modern"
     return json_settings, theme_name
-
 
 json_settings, theme_name = get_theme_name()
 print(theme_name)
@@ -97,9 +96,9 @@ if theme_name != "dark_modern":
         theme_settings = json.load(file, cls=JSONWithCommentsDecoder)
 else:
     extension_path = os.path.expanduser(
-        r"~/AppData\Local\Programs\Microsoft VS Code\resources\app\extensions\theme-defaults\themes\dark_modern"
+        r"~/AppData\Local\Programs\Microsoft VS Code\resources\app\extensions\theme-defaults\themes\dark_modern.json"
     )
-
+print(extension_path)
 with open(extension_path) as file:
     theme_settings = json.load(file, cls=JSONWithCommentsDecoder)
 
